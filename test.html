@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="FileSaver.js"></script>
+  <script src="https://cdn.tiny.cloud/1/77o97ado0rhi5mbtx1y6sueforhq7l8ymg3se1j891crv2m8/tinymce/5/tinymce.min.js"></script>
+  <script>
+ tinymce.init({
+  selector: "textarea",  // change this value according to your HTML
+  plugins: "save",
+  toolbar: "save",
+  save_onsavecallback: function () { console.log('Saved'); }
+});
+    </script>
 </head>
+<body>
+  <textarea>Next, use our Get Started docs to setup Tiny!</textarea>
+  <form><button name="submitbtn">Save</button></form>
 
-    <section id="text-demo">
-        <h2>Saving text</h2>
-        <textarea class="input" id="text" placeholder="Once upon a time..."/>
-        <form id="text-options">
-            <label>Filename: <input type="text" class="filename" id="text-filename" placeholder="a plain document"/>.txt</label>
-            <input type="submit" value="Save"/>
-        </form>
-    </section>
-
+</body>
 </html>
