@@ -1,21 +1,217 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <script src="https://cdn.tiny.cloud/1/77o97ado0rhi5mbtx1y6sueforhq7l8ymg3se1j891crv2m8/tinymce/5/tinymce.min.js"></script>
-    <script>
- tinymce.init({
-  selector: "textarea",  // change this value according to your HTML
-  plugins: "save",
-  toolbar: "save",
-  save_onsavecallback: function () { console.log('Saved'); }
-});
-    </script>
-</head>
-<body>
-<form>
-  <textarea>Next, use our Get Started docs to setup Tiny!</textarea>
-  <button name="submitbtn"></button>
-  </form>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Testing</title>  
+        <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/ui-lightness/jquery-ui.css" type="text/css" rel="stylesheet" />
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js" type="text/javascript"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js" type="text/javascript"></script>
+        <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+        <script type="text/javascript">
+            tinymce._addHTML=function(id,html){
+                //Is there a better way to do this?
+                var e=this.get(id);
+                document.getElementById(id).innerHTML=html;
+                e.startContent = html;
+                e.setContent(html);
+                //e.save(); //Remove??
+            }
+            tinymce.PluginManager.add('mysave', function(editor) {
 
-</body>
+                function save() {
+                    var formObj;
+
+                    formObj = tinymce.DOM.getParent(editor.id, 'form');
+
+                    if (editor.getParam('mysave_enablewhendirty', true) && !editor.isDirty()) {
+                        return;
+                    }
+
+                    editor.startContent = editor.getContent();
+                    editor.hide();
+
+                    //tinymce.triggerSave();
+                    editor.save();
+
+                    if (editor.getParam('mysave_onsavecallback')) {
+                        editor.execCallback('mysave_onsavecallback', editor);
+                        editor.nodeChanged();
+                        return;
+                    }
+
+                    if (formObj) {
+                        editor.setDirty(false);
+
+                        if (!formObj.onsubmit || formObj.onsubmit()) {
+                            if (typeof formObj.submit == 'function') {
+                                formObj.submit();
+                            } else {
+                                displayErrorMessage(editor.translate('Error: Form submit field collision.'));
+                            }
+                        }
+
+                        editor.nodeChanged();
+                    } else {
+                        displayErrorMessage(editor.translate('Error: No form element found.'));
+                    }
+                }
+
+                function displayErrorMessage(message) {
+                    editor.notificationManager.open({
+                        text: message,
+                        type: 'error'
+                    });
+                }
+
+                function cancel() {
+                    if (editor.getParam('mysave_oncancelconfirmcallback') && editor.isDirty()) {
+                        editor.execCallback('mysave_oncancelconfirmcallback', editor, cancelChanges);
+                    } else {
+                        cancelChanges();
+                    }
+
+                    function cancelChanges() {
+                        var h = tinymce.trim(editor.startContent);
+
+                        if (editor.getParam('mysave_oncancelcallback')) {
+                            editor.execCallback('mysave_oncancelcallback', editor);
+                        }
+
+                        editor.setContent(h);
+                        editor.undoManager.clear();
+                        editor.nodeChanged();
+
+                        //tinymce.triggerSave();
+                        editor.save();
+                        editor.setDirty(false);
+
+                        editor.hide();
+                    }
+
+                    stateToggle.call(mySaveButton);
+                    mySaveButton.disabled(true);
+                }
+
+                function stateToggle() {
+                    var self = this;
+                    editor.on('nodeChange dirty', function() {
+                        self.disabled(editor.getParam('mysave_enablewhendirty', true) && !editor.isDirty());
+                    });
+                }
+
+                editor.addCommand('mceMySave', save);
+                editor.addCommand('mceMyCancel', cancel);
+
+                var mySaveButton;
+                editor.addButton('mysave', {
+                    icon: 'save',
+                    text: 'Save',
+                    title: 'Save changes and close editor',
+                    cmd: 'mceMySave',
+                    disabled: true,
+                    onPostRender: function() {
+                        mySaveButton = this;
+                        stateToggle.call(this);
+                    }
+                });
+
+                editor.addButton('mycancel', {
+                    icon: 'remove',
+                    text: 'Cancel',
+                    title: 'Cancel changes and close editor',
+                    cmd: 'mceMyCancel',
+                    disabled: false
+                });
+
+                editor.addShortcut('Meta+S', '', 'mceMySave');
+
+            });
+        </script>
+        <style type="text/css">
+            #box {
+                border: 1px solid;
+            }
+            .section {
+                padding:10px; height:200px;width:800px;
+            }
+        </style>
+        <script type="text/javascript">
+            tinymce.init({
+                selector: '.content',
+                width : 800,
+                height: 100,
+                toolbar: 'undo redo | bold italic underline strikethrough fontsizeselect | bullist numlist | link | mysave mycancel',
+                plugins: 'spellchecker link paste mysave',
+                //external_plugins: {"mysave": "/path/to/tinymce/plugin.js"},
+                browser_spellcheck: true,
+                save_enablewhendirty: true, // Enabled by default
+                mysave_oncancelconfirmcallback: function(editor, confirmedCallback) {
+                    if (confirm('You have unsaved work. Are you sure you want to cancel?')) {
+                        console.log('cancelled');
+                        confirmedCallback();
+                    } else {
+                        console.log('cancel cancelled');
+                    }
+                },
+                mysave_oncancelcallback : function(editor) {
+                    console.log('cancel callback');
+                },
+                mysave_onsavecallback: function (editor) {
+                    console.log('saved');
+                },
+                menubar: false,
+                statusbar: false,
+                setup: function(ed) {
+                    ed.on('init', function(e) {
+                        e.target.hide();
+                    });
+                }
+            });
+            $(function() {
+
+                $("#open").click(function(){$("#dialog").dialog("open");});
+                $("#dialog").dialog({
+                    autoOpen    : false,
+                    resizable   : false,
+                    height      : 800,
+                    width       : 800, 
+                    modal       : true,
+                    open        : function() {
+                        tinymce._addHTML('content1','New text 1 from DB.');
+                        tinymce._addHTML('content2','New text 2 from DB.');
+                        tinymce._addHTML('content3','New text 3 from DB.');
+                        //$('#content1').html('New text 1 from DB.');
+                        //tinymce.get('content1').startContent = 'New text 1 from DB.';
+                        //tinymce.get('content1').setContent("Newer text 1 from DB.");
+                        //tinymce.get('content1').save();
+                        //tinyMCE.activeEditor.setContent('Newest text 1 from DB.');
+                    }
+                });
+
+                $('a.edit').click(function() {
+                    tinymce.get($(this).closest('div.section').find('div.content').attr('id')).show();
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+        <button id='open'>Open</button>
+        <div id="dialog" title="dialog title">
+            <div id="box">
+                <div class="section">
+                    <p>Content 1 <a href="#" class="edit" id="edit1">edit</a></p>
+                    <div id="content1" class="content">Original text 1.</div>
+                </div>
+                <div class="section">
+                    <p>Content 2 <a href="#" class="edit" id="edit2">edit</a></p>
+                    <div id="content2" class="content">Original text 2.</div>
+                </div>
+                <div class="section">
+                    <p>Content 3 <a href="#" class="edit" id="edit3">edit</a></p>
+                    <div id="content3" class="content">Original text 3.</div>
+                </div>
+            </div>
+        </div>
+    </body> 
 </html>
