@@ -10,6 +10,14 @@
         <img src="pics/CourseStructure.png" alt="CourseStructure" class="screenshot">
         
         <h1>ng start process</h1>
-        
-</body>
+        <p>1. main.ts file sadrzi code koji se izvrsava prvi.</p>
+        <img src="pics/bootstrpapModule.png" alt="bootstrpapModule" class="screenshot">
+        <p>2. .bootstrapModule function prima kao parametar AppModule</p>
+        <img src="pics/Appodule.png" alt="Appodule" class="screenshot">
+        <p>3. app.module.ts u bootstrap array se prima kao parametar AppComponent</p>
+        <img src="pics/AppComponent.png" alt="AppComponent" class="screenshot">
+        <p>4. Angular se pokrece i aktivira maint.ts. Zatim se bootstrap-je i prosledjuje app.module.ts kao parametar. U app.module.ts modulu govorimo Angularu da postoji app.component.ts. Angular analizira app.compnent.ts, pronalazi selector: 'app-root' i main index.html moze da pronadje/ubaci <app-root></app-root>app-root>.</app-root>  </p>
+        <img src="pics/main.png" alt="main" class="screenshot">
+
+    </body>
 </html>
